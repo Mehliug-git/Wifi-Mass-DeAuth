@@ -59,7 +59,9 @@ display_wifi_networks(networks)
 
 
 #prise d'infos (client pour deauth)
-if bssid != False:
+for network in networks:
+    bssid = network[0]
+    print(f'BSSID TROUVE : {bssid}')
     command = f"airodump-ng --bssid {bssid} --channel {channel} {wlanmon}"
 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -70,13 +72,12 @@ if bssid != False:
     if error:
         print("ERROR :", error.decode())
     else:
-
+        print(f"Output pour {ssid}")
         print(output.decode())
 
 
 
 """
-
     # Restauration de la configuration de l'interface
     os.system(f"ifconfig {wlanmon} down")
     os.system(f"iwconfig {wlanmon} mode managed")
