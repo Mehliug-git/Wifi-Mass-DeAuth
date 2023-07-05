@@ -1,8 +1,7 @@
 from scapy.all import *
 from scapy.layers import *
 from prettytable import PrettyTable
-import subprocess
-import threading
+
 
 
 #conf si le user n'a rien mis
