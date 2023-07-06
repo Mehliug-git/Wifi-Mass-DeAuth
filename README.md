@@ -5,6 +5,13 @@ This script deauth everyone on every wifi around you !
 
 ## USAGE
 
+First install the requirements :
+
+```
+pip3 install -r requirements.txt
+
+```
+Now you can launch the script !
 
 ```
 python3 heheheha.py {YOUR_WIFI_INTERFACE} {YOUR_MONITOR_WIFI_INTERFACE}
