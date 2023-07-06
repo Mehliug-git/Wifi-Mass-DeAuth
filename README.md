@@ -3,7 +3,7 @@
 This script deauth everyone on every wifi around you !
 <br><br>
 
-# USAGE
+## USAGE
 
 <br><br>
 
