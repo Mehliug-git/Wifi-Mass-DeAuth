@@ -5,7 +5,6 @@ This script deauth everyone on every wifi around you !
 
 ## USAGE
 
-<br><br>
 
 ```
 python3 heheheha.py {YOUR_WIFI_INTERFACE} {YOUR_MONITOR_WIFI_INTERFACE}
