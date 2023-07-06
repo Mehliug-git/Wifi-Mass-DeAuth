@@ -25,7 +25,6 @@ def main():
 
         """)
     # pour le --help
-    print(banner)
     parser = argparse.ArgumentParser(description='Mass Deauth wifi script\n\n Give to the script the interface name and the monitor interface name [without this wlan0 by default]')
     args = parser.parse_args()
     #verif droit sudo 
