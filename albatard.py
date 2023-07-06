@@ -1,7 +1,23 @@
 from scapy.all import *
 from scapy.layers import *
 from prettytable import PrettyTable
+import argparse
 
+"""
+TODO
+
+le rendre joli :)
+chopper le hash wifi
+
+"""
+
+def main():
+    # Créez un objet ArgumentParser
+    parser = argparse.ArgumentParser(description='Mass Deauth wifi script\n\n Give to the script the interface name and the monitor interface name [without this wlan0 by default]')
+
+    args = parser.parse_args()
+
+main()
 
 
 #conf si le user n'a rien mis
@@ -12,8 +28,8 @@ if len(sys.argv) < 2:
 
 #conf si ya bien les args
 if len(sys.argv) > 2:
-    interface = sys.argv[1]
-    wlanmon = sys.argv[2]
+    interface = sys.argv[0]
+    wlanmon = sys.argv[1]
 
 
 # Fonction pour scanner les réseaux WiFi
