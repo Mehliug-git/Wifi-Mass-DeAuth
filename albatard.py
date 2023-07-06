@@ -12,10 +12,14 @@ chopper le hash wifi
 """
 
 def main():
-    # Créez un objet ArgumentParser
+    # pour le --help
     parser = argparse.ArgumentParser(description='Mass Deauth wifi script\n\n Give to the script the interface name and the monitor interface name [without this wlan0 by default]')
-
     args = parser.parse_args()
+    #verif droit sudo 
+    if not os.geteuid() == 0:
+        print("SUDO requied !!")
+    else:
+        pass
 
 main()
 
