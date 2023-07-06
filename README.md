@@ -8,9 +8,9 @@ This script deauth everyone on every wifi around you !
 ```
 python3 heheheha.py {YOUR_WIFI_INTERFACE} {YOUR_MONITOR_WIFI_INTERFACE}
 ```
-<br><br>
+
 or 
-<br><br>
+
 ```
 python3 heheheha.py
 ```
