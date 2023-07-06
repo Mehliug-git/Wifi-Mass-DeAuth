@@ -1,7 +1,7 @@
 # Mass deauth
 <br>
 This script deauth everyone on every wifi around you !
-<br>
+<br><br>
 ## USAGE
 <br><br>
 
