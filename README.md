@@ -1,6 +1,6 @@
 # Mass deauth
 <br>
-This script deauth everyone on every wifi around you !
+This script deauth everyone on every wifi around you & grab password hash !
 <br><br>
 
 ## USAGE
