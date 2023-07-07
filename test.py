@@ -1,18 +1,14 @@
-output = """CH 1 ][ Elapsed: 12 s ][ 2023-07-05 08:53
 
-BSSID PWR RXQ Beacons #Data, #/s CH MB ENC CIPHER AUTH ESSID
+RED   = "\033[1;31m"  
+BLUE  = "\033[1;34m"
+CYAN  = "\033[1;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD    = "\033[;1m"
+REVERSE = "\033[;7m"
 
-DE:AF:3B:EF:A7:B9 -30 100 112 0 0 1 180 WPA2 CCMP PSK shell
+mac = "test"
 
-BSSID STATION PWR Rate Lost Frames Notes Probes
 
-DE:AF:3B:EF:A7:B9 8E:A6:CA:BD:B3:04 -23 0 - 1e 1 3"""
 
-lines = output.split("\n")
-last_line = lines[-1].strip()
-mac_addresses = last_line.split()
-if len(mac_addresses) >= 2:
-    user = mac_addresses[1]
-    print("User:", user)
-else:
-    print("No user found.")
+print(BOLD, BLUE,f'{mac}')
