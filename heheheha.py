@@ -171,7 +171,7 @@ def handshake_grab(mac, channel, ssid):
     match = re.search(regex, output_handshake)
     if match:
         handshake = match.group(0)
-        print(BOLD, GREEN,f'BOOM ! For {ssid} the Handshake files is : {out_filename}.cap', RESET)
+        print(BOLD, GREEN,f'BOOM ! For {ssid} the Handshake file is : {out_filename}.cap', RESET)
     else:
         print(RED,"[-] No handshake Found",RESET)
         print(BLUE,f'[*] Result of Airodump : {output_handshake} ')
@@ -211,13 +211,6 @@ else:
     print(BOLD, RED,"[-] No wifi hotspot found !\n\n[*] Try again (or re-active your monitor mode) !")
     sys.exit()
     
-
-"""
-           
-"""
-
-
-
 
 # kill monitor mode
 os.system(f"airmon-ng stop {interface} > /dev/null ")
