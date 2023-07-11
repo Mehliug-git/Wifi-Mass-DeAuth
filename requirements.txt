@@ -4,3 +4,4 @@ argparse
 subprocess
 shlex
 threading
+aircrack-ng
