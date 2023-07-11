@@ -42,5 +42,3 @@ aircrack-ng the_output_name.cap -w /home/root/wordlist/your_wordlist.txt
 <br><br>
 **Just for educational purpose only, Do, what you want I don’t give a fuck, but it’s not my fault you’re in trouble.** 
 
-<br><br><br><br>
-SOON : Language update for not Frenchies people & for a better english ;)

